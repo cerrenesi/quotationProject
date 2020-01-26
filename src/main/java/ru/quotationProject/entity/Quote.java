@@ -23,5 +23,7 @@ public class Quote {
     @Column(name = "ask")
     private double ask;
 
+    @Column(name = "elvl")
+    private double elvl;
 
 }
