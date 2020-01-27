@@ -1,6 +1,7 @@
 package ru.quotationProject.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import ru.quotationProject.entity.Quote;
 import ru.quotationProject.service.QuoteService;
@@ -46,28 +47,9 @@ public class QuoteRestController {
 
 
     @PostMapping("/quotes")
-    public Quote addQuote(@RequestBody Quote quote) {
+    public Quote addQuote(@RequestBody Quote quote, Errors errors) {
         quote.setId(0);
-        quoteService.save(quote);
+        quoteService.save(quote, errors);
         return quote;
     }
-
-    @PutMapping("/quotes")
-    public Quote updateQuote(@RequestBody Quote quote) {
-        quoteService.save(quote);
-        return quote;
-    }
-
-    @DeleteMapping("/quotes/{quoteId}")
-    public String deleteQuote(@PathVariable int quoteId) {
-        Quote tempQuote = quoteService.findById(quoteId);
-        if (Objects.isNull(tempQuote)) {
-            throw new RuntimeException("quote id not found - " + quoteId);
-        }
-        quoteService.deleteById(quoteId);
-        return "Deleted quote id - " + quoteId;
-
-    }
-
-
 }

@@ -2,10 +2,15 @@ package ru.quotationProject.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.Errors;
 import ru.quotationProject.dao.EnergyLevelFinder;
 import ru.quotationProject.dao.QuoteRepository;
 import ru.quotationProject.entity.Quote;
 
+import javax.validation.Valid;
+import javax.validation.ValidationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,13 +20,15 @@ public class QuoteServiceImpl implements QuoteService {
 
     private QuoteRepository quoteRepository;
     private EnergyLevelFinder energyLevelFinder;
+    private QuoteValidator quoteValidator;
 
     private Map<String, Double> elvlCash;
 
     @Autowired
-    public QuoteServiceImpl(QuoteRepository quoteRepository, EnergyLevelFinder energyLevelFinder) {
+    public QuoteServiceImpl(QuoteRepository quoteRepository, EnergyLevelFinder energyLevelFinder, QuoteValidator quoteValidator) {
         this.quoteRepository = quoteRepository;
         this.energyLevelFinder = energyLevelFinder;
+        this.quoteValidator = quoteValidator;
         elvlCash = new HashMap<>();
     }
 
@@ -36,15 +43,14 @@ public class QuoteServiceImpl implements QuoteService {
     }
 
     @Override
-    public void save(Quote quote) {
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void save(Quote quote, Errors errors) {
         calculateNewEnergyLevel(quote);
+        quoteValidator.validate(quote, errors);
+        if (errors.hasErrors()) {
+            throw new ValidationException("invalid quote");
+        }
         quoteRepository.save(quote);
-
-    }
-
-    @Override
-    public void deleteById(long id) {
-        quoteRepository.deleteById(id);
     }
 
     @Override
@@ -60,7 +66,8 @@ public class QuoteServiceImpl implements QuoteService {
 
     private void calculateNewEnergyLevel(Quote quote) {
 
-        double currentElvl = findElvlByIsin(quote.getIsin()).getOrDefault(quote.getElvl(), Double.valueOf(0));//elvlCash.get(quote.getIsin());
+        double currentElvl = elvlCash.getOrDefault(quote.getIsin(),
+                findElvlByIsin(quote.getIsin()).getOrDefault(quote.getElvl(), Double.valueOf(0)));
 
         if (currentElvl == 0 || quote.getBid() >  currentElvl) {
             quote.setElvl(quote.getBid());

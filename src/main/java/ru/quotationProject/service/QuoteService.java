@@ -1,5 +1,6 @@
 package ru.quotationProject.service;
 
+import org.springframework.validation.Errors;
 import ru.quotationProject.entity.Quote;
 
 import java.util.List;
@@ -9,8 +10,7 @@ public interface QuoteService {
 
     List<Quote> findAll();
     Quote findById(long id);
-    void save(Quote employee);
-    void deleteById(long id);
+    void save(Quote employee, Errors errors);
 
     Map<String, Double> findCurrentElvls();
 

@@ -3,6 +3,7 @@ package ru.quotationProject.entity;
 import lombok.Data;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 
 @Data
 @Entity
@@ -15,6 +16,7 @@ public class Quote {
     private long id;
 
     @Column(name = "isin")
+    @Size(min = 12, max = 12, message = "incorrect isin")
     private String isin;
 
     @Column(name = "bid")
